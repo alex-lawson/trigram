@@ -48,3 +48,7 @@ function util.print(t)
     return t
   end
 end
+
+function util.rectContains(rect, point)
+  return point[1] >= rect[1] and point[2] >= rect[2] and point[1] <= rect[3] and point[2] <= rect[4]
+end
