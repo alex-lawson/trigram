@@ -76,11 +76,23 @@ function Game:addPlayer(playerName)
 end
 
 function Game:canPlaceRune(tx, ty, slot, rune)
-
+  local spell = self:spellAt(tx, ty)
+  if spell then
+    return spell:canAddRune(slot, rune)
+  else
+    return true
+  end
 end
 
 function Game:placeRune(tx, ty, slot, rune)
-
+  local spell = self:spellAt(tx, ty)
+  if spell then
+    spell:addRune(slot, rune)
+  else
+    local newSpell = Spell:new(tx, ty)
+    newSpell:addRune(slot, rune)
+    table.insert(self.spells, newSpell)
+  end
 end
 
 function Game:endTurn()

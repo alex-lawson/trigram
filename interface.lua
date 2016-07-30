@@ -85,9 +85,9 @@ function Interface:update()
       end
     end
     self.overlay("hoverPosition").position2d = m2scr(tx, ty)
-    self.overlay("hoverSprite").color = vec4(1, 1, 1, 0.7)
+    self.overlay("hoverSprite").hidden = true
   else
-    self.overlay("hoverSprite").color = vec4(0)
+    self.overlay("hoverSprite").hidden = false
   end
 
   for _, button in pairs(self.buttons) do
