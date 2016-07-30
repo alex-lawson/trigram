@@ -1,6 +1,7 @@
 local MapLayer = require "maplayer"
 local TileLayer = require "tilelayer"
 local TileSet = require "tileset"
+local Spell = require "spell"
 
 local Game = ...
 
@@ -26,11 +27,13 @@ function Game:reset()
 
   self:setupMap()
 
-  if self.node("mapTileLayer") then
-    self.node:replace("mapTileLayer", self.tileLayer.node:tag("mapTileLayer"))
-  else
-    self.node:append(self.tileLayer.node:tag("mapTileLayer"))
-  end
+  self.node:remove_all()
+  self.node:append(self.tileLayer.node:tag("mapTileLayer"))
+
+  self:placeRune(3, 3, "body", "flame")
+  self:placeRune(8, 3, "body", "cross")
+  self:placeRune(8, 3, "heart", "cross")
+  self:placeRune(11, 7, "mind", "mask")
 end
 
 function Game:setupMap()
@@ -75,6 +78,14 @@ function Game:addPlayer(playerName)
   table.insert(self.gameState.players, player)
 end
 
+function Game:spellAt(tx, ty)
+  for _, spell in pairs(self.gameState.spells) do
+    if spell.x == tx and spell.y == ty then
+      return spell
+    end
+  end
+end
+
 function Game:canPlaceRune(tx, ty, slot, rune)
   local spell = self:spellAt(tx, ty)
   if spell then
@@ -91,7 +102,8 @@ function Game:placeRune(tx, ty, slot, rune)
   else
     local newSpell = Spell:new(tx, ty)
     newSpell:addRune(slot, rune)
-    table.insert(self.spells, newSpell)
+    table.insert(self.gameState.spells, newSpell)
+    self.node:append(newSpell.node)
   end
 end
 

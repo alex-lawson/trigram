@@ -17,7 +17,7 @@ function Interface:new(game)
     }):tag("guiUnderlay")
 
   newInterface.overlay = am.group({
-      am.translate(0, 0):tag("hoverPosition") ^ am.scale(settings.renderScale) ^ am.sprite("images/tiles/selected.png", vec4(0), "left", "bottom"):tag("hoverSprite")
+      am.translate(0, 0):tag("hoverPosition") ^ am.scale(settings.renderScale) ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"):tag("hoverSprite")
     }):tag("guiOverlay")
 
   for i = 1, 3 do
@@ -53,7 +53,7 @@ function Interface:addButton(image, screenPos, tag, hoverCallback, clickCallback
     clickCallback = clickCallback
   }
 
-  log("created button with screenrect %s", newButton.screenRect)
+  -- log("created button with screenrect %s", newButton.screenRect)
 
   table.insert(self.buttons, newButton)
 end
@@ -85,9 +85,9 @@ function Interface:update()
       end
     end
     self.overlay("hoverPosition").position2d = m2scr(tx, ty)
-    self.overlay("hoverSprite").hidden = true
-  else
     self.overlay("hoverSprite").hidden = false
+  else
+    self.overlay("hoverSprite").hidden = true
   end
 
   for _, button in pairs(self.buttons) do

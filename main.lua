@@ -1,6 +1,6 @@
 settings = {
-  mapSize = {15, 11},
-  tileSize = {16, 16},
+  mapSize = vec2(15, 11),
+  tileSize = vec2(16, 16),
   tileCount = 3,
   renderScale = 3.0,
   guiScale = 4.0,

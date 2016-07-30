@@ -2,6 +2,18 @@ local util = require "util"
 
 local Spell = ...
 
+function Spell.color(rune)
+  if rune == "flame" then
+    return vec4(0.9, 0.6, 0.2, 1.0)
+  elseif rune == "cross" then
+    return vec4(0.2, 0.9, 0.6, 1.0)
+  elseif rune == "mask" then
+    return vec4(0.8, 0.2, 0.7, 1.0)
+  else
+    return vec4(1)
+  end
+end
+
 function Spell:new(x, y)
   local newSpell = {
     x = x,
@@ -11,7 +23,8 @@ function Spell:new(x, y)
     heartRune = nil,
     heartLevel = 0,
     mindRune = nil,
-    mindLevel = 0
+    mindLevel = 0,
+    node = am.translate(x * settings.tileSize[1], y * settings.tileSize[2])
   }
 
   setmetatable(newSpell, { __index = Spell })
@@ -26,6 +39,22 @@ end
 function Spell:addRune(slot, rune)
   self[slot.."Rune"] = rune
   self[slot.."Level"] = self[slot.."Level"] + 1
+  self:updateNode()
+end
+
+function Spell:updateNode()
+  self.node:remove_all()
+
+  local emptyColor = vec4(0.1, 0.1, 0.1, 1.0)
+
+  local bodyColor = self.bodyLevel > 0 and Spell.color(self.bodyRune) or emptyColor
+  self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.25), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.25), 2, bodyColor))
+
+  local heartColor = self.heartLevel > 0 and Spell.color(self.heartRune) or emptyColor
+  self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.50), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.50), 2, heartColor))
+
+  local mindColor = self.mindLevel > 0 and Spell.color(self.mindRune) or emptyColor
+  self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.75), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.75), 2, mindColor))
 end
 
 function Spell:processWithRune(slot, rune)
@@ -39,8 +68,8 @@ function Spell:processWithRune(slot, rune)
   end
 end
 
-function spell:process(overrides)
-  local spellConfig = util.merge(
+function Spell:process(overrides)
+  local spellConfig = util.merge(self, overrides)
 
   local res = {
     spaces = {},
@@ -49,52 +78,52 @@ function spell:process(overrides)
     specials = {}
   }
 
-  if self.bodyLevel > 0 then
-    if self.bodyRune == "flame" then
-      local dist = self.bodyLevel
+  if spellConfig.bodyLevel > 0 then
+    if spellConfig.bodyRune == "flame" then
+      local dist = spellConfig.bodyLevel
       for x = -dist, dist do
         for y = -dist, dist do
-          table.insert(res.spaces, self.pos + vec2(x, y))
+          table.insert(res.spaces, spellConfig.pos + vec2(x, y))
         end
       end
-    elseif self.bodyRune == "cross" then
-      local dist = self.bodyLevel * 2
+    elseif spellConfig.bodyRune == "cross" then
+      local dist = spellConfig.bodyLevel * 2
       for x = -dist, dist do
-        table.insert(res.spaces, self.pos + vec2(x, 0))
+        table.insert(res.spaces, spellConfig.pos + vec2(x, 0))
       end
       for y = -dist, dist do
         if y ~= 0 then
-          table.insert(res.spaces, self.pos + vec2(0, y))
+          table.insert(res.spaces, spellConfig.pos + vec2(0, y))
         end
       end
-    elseif self.bodyRune == "mask" then
-      local dist = self.bodyLevel * 2
+    elseif spellConfig.bodyRune == "mask" then
+      local dist = spellConfig.bodyLevel * 2
       for x = -dist, dist do
         for y = -dist, dist do
           if abs(x) + abs(y) == dist then
-            table.insert(res.spaces, self.pos + vec2(x, y))
+            table.insert(res.spaces, spellConfig.pos + vec2(x, y))
           end
         end
       end
     end
   end
 
-  if self.heartLevel > 0 then
-    if self.heartRune == "flame" then
-      res.modifyHealth = -self.heartLevel
-    elseif self.heartRune == "cross" then
-      res.modifyHealth = self.heartLevel
-    elseif self.heartRune == "mask" then
-      res.modifyHealth = self.heartLevel * (-1) ^ level
+  if spellConfig.heartLevel > 0 then
+    if spellConfig.heartRune == "flame" then
+      res.modifyHealth = -spellConfig.heartLevel
+    elseif spellConfig.heartRune == "cross" then
+      res.modifyHealth = spellConfig.heartLevel
+    elseif spellConfig.heartRune == "mask" then
+      res.modifyHealth = spellConfig.heartLevel * (-1) ^ level
     end
   end
 
-  if self.mindLevel > 0 then
-    if self.mindRune == "flame" then
+  if spellConfig.mindLevel > 0 then
+    if spellConfig.mindRune == "flame" then
       table.insert(res.specials, "trigger")
-    elseif self.mindRune == "cross" then
+    elseif spellConfig.mindRune == "cross" then
       table.insert(res.specials, "nullify")
-    elseif self.mindRune == "mask" then
+    elseif spellConfig.mindRune == "mask" then
       res.modifyHealth = -res.modifyHealth
       res.modifySpeed = -res.modifySpeed
     end
