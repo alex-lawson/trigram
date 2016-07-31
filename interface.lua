@@ -1,12 +1,17 @@
+local Spell = require "spell"
 local util = require "util"
 
 local Interface = ...
 
-function Interface:new(game)
+function Interface.new(game)
   local newInterface = {
     game = game,
     buttons = {},
-    hoverTile = vec2(0)
+    hoverTile = vec2(0),
+    selectedRune = "circle",
+    selectedSlotIndex = 1,
+    selectedSlot = "outer",
+    selectedSlotName = "body" -- TODO: get rid of this ridiculous disparity in terms
   }
 
   setmetatable(newInterface, { __index = Interface })
@@ -18,46 +23,131 @@ function Interface:new(game)
     }):tag("guiUnderlay")
 
   newInterface.overlay = am.group({
-      am.translate(0, 0):tag("hoverPosition") ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"):tag("hoverSprite"),
+      am.translate(0, 0):tag("hoverPosition") ^ am.sprite("images/interface/tileoverlay/selected.png", vec4(1), "left", "bottom"):tag("hoverSprite"),
       am.group():tag("previewSpaces")
     }):tag("guiOverlay")
 
-  for i = 1, 3 do
-    newInterface:addButton("images/runes/"..i..".png", vec2(-settings.windowSize[1] / 2 + 20 * i, settings.windowSize[2] / 2 - 10), "rune"..i,
-      function(self, hovered)
-        -- log("hover is %s, self is %s", hovered and "true" or "false", table.tostring(self))
-        if hovered then
-          self.node(self.tag).color = vec4(1, 1, 1, 1)
-        else
-          self.node(self.tag).color = vec4(0.75, 0.75, 0.75, 1)
-        end
-      end,
-      function(self, button)
-        log("clicked %s with button %s", self.tag, button)
-      end)
+  for i, rune in pairs({"circle", "cross", "chaos"}) do
+    local screenPos = vec2(-settings.windowSize[1] / 2 + 14 + 24 * (i - 1), settings.windowSize[2] / 2 - 14)
+
+    local node = am.translate(screenPos)
+    newInterface.overlay:append(node)
+
+    local baseSprite = am.sprite("images/interface/runebuttonbg.png"):tag("runeBaseSprite"):tag(rune.."baseSprite")
+    node:append(baseSprite)
+
+    local halfW = baseSprite.width * 0.5
+    local halfH = baseSprite.height * 0.5
+
+    local newButton = {
+      node = node,
+      tag = rune.."Button",
+      screenRect = vec4(screenPos[1] - halfW, screenPos[2] - halfH, screenPos[1] + halfW, screenPos[2] + halfH),
+      hovered = false
+    }
+
+    node:append(am.sprite("images/runes/"..rune.."-outer.png"):tag("runeButtonSprite"):tag(rune.."outer"))
+    node:append(am.sprite("images/runes/"..rune.."-mid.png"):tag("runeButtonSprite"):tag(rune.."mid"))
+    node:append(am.sprite("images/runes/"..rune.."-inner.png"):tag("runeButtonSprite"):tag(rune.."inner"))
+
+    function newButton:hoverCallback(hovered)
+      -- log("hover is %s, self is %s", hovered and "true" or "false", table.tostring(self))
+      -- if hovered then
+      --   self.node("runeBaseSprite").source = "images/interface/runebuttonbgselected.png"
+      -- else
+      --   self.node("runeBaseSprite").source = "images/interface/runebuttonbg.png"
+      -- end
+    end
+
+    function newButton:clickCallback(mouseButton)
+      if mouseButton == "left" then
+        newInterface:selectRune(rune)
+      end
+      -- log("clicked %s with mouseButton %s", self.tag, mouseButton)
+    end
+
+    -- log("created button with screenrect %s", newButton.screenRect)
+
+    table.insert(newInterface.buttons, newButton)
   end
+
+  newInterface:updateRuneButtons()
 
   return newInterface
 end
 
-function Interface:addButton(image, screenPos, tag, hoverCallback, clickCallback)
-  local sprite = am.sprite(image)
-  local node = am.translate(screenPos[1], screenPos[2]) ^ sprite:tag(tag)
-  self.overlay:append(node)
-  local halfW = sprite.width * 0.5
-  local halfH = sprite.height * 0.5
+local runeSlotNames = {
+  outer = "body",
+  mid = "mind",
+  inner = "heart"
+}
 
-  local newButton = {
-    node = node,
-    tag = tag,
-    screenRect = vec4(screenPos[1] - halfW, screenPos[2] - halfH, screenPos[1] + halfW, screenPos[2] + halfH),
-    hoverCallback = hoverCallback,
-    clickCallback = clickCallback
-  }
+function Interface:selectRune(rune)
+  if self.selectedRune ~= rune then
+    self.selectedRune = rune
+    -- log("rune shifted to %s", self.selectedRune)
+  else
+    local slots = {"outer", "mid", "inner"}
+    self.selectedSlotIndex = self.selectedSlotIndex % 3 + 1
+    self.selectedSlot = slots[self.selectedSlotIndex]
+    self.selectedSlotName = runeSlotNames[self.selectedSlot]
+    -- log("rune slot advanced to %s : %s '%s'", self.selectedSlotIndex, self.selectedSlot, self.selectedSlotName)
+  end
+  self:updateRuneButtons()
+  self:updateHoverlays()
+end
 
-  -- log("created button with screenrect %s", newButton.screenRect)
+function Interface:updateRuneButtons()
+  local selectedColor = vec4(1, 1, 1, 1)
+  local deselectedColor = vec4(0.5, 0.5, 0.5, 1)
+  for _, sprite in pairs(self.overlay:all("runeButtonSprite")) do
+    sprite.color = deselectedColor
+  end
+  self.overlay(self.selectedRune..self.selectedSlot).color = selectedColor
 
-  table.insert(self.buttons, newButton)
+  for _, sprite in pairs(self.overlay:all("runeBaseSprite")) do
+    sprite.source = "images/interface/runebuttonbg.png"
+  end
+  self.overlay(self.selectedRune.."baseSprite").source = "images/interface/runebuttonbgselected.png"
+end
+
+function Interface:updateHoverlays(tx, ty)
+  if tx then
+    self.hoverTile = vec2(tx, ty)
+    self.overlay("hoverPosition").position2d = m2scr(tx, ty)
+    self.overlay("hoverSprite").hidden = false
+    self.overlay("previewSpaces"):remove_all()
+    win.scene("mapTranslate"):remove("previewSpell")
+
+    local spell = self.game:spellAt(tx, ty)
+    local previewSpell
+    if not spell or spell:canAddRune(self.selectedSlotName, self.selectedRune) then
+      previewSpell = Spell.new(tx, ty)
+      previewSpell:addRune(self.selectedSlotName, self.selectedRune)
+    else
+      -- no change to preview
+    end
+
+    if previewSpell then
+      win.scene("mapTranslate"):append(previewSpell.node:tag("previewSpell"))
+    end
+
+    local spellResult
+    if spell then
+      spellResult = spell:processWithRune(self.selectedSlotName, self.selectedRune)
+    else
+      spellResult = previewSpell:process()
+    end
+
+    for _, space in pairs(spellResult.spaces) do
+      self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite("images/interface/tileoverlay/aoe.png", vec4(1), "left", "bottom"))
+    end
+  else
+    self.hoverTile = vec2(0)
+    self.overlay("hoverSprite").hidden = true
+    self.overlay("previewSpaces"):remove_all()
+    win.scene("mapTranslate"):remove("previewSpell")
+  end
 end
 
 function Interface:update()
@@ -70,9 +160,18 @@ function Interface:update()
     end
   end
 
+  if win:key_pressed("1") then
+    self:selectRune("circle")
+  elseif win:key_pressed("2") then
+    self:selectRune("cross")
+  elseif win:key_pressed("3") then
+    self:selectRune("chaos")
+  end
+
   local mPos = win:mouse_position()
   if util.rectContains(settings.mapScreenRect, mPos) then
     local tx, ty = scr2m(mPos)
+    local canPlace = self.game:canPlaceRune(tx, ty, self.selectedSlotName, self.selectedRune)
     if win:key_down("lshift") then
       if win:mouse_pressed("left") then
         self.game:cycleTile(tx, ty, 1)
@@ -81,37 +180,33 @@ function Interface:update()
       end
     else
       if win:mouse_pressed("left") then
-
+        if self.game:canPlaceRune(tx, ty, self.selectedSlotName, self.selectedRune) then
+          self.game:placeRune(tx, ty, self.selectedSlotName, self.selectedRune)
+          self:updateHoverlays()
+        end
       elseif win:mouse_pressed("right") then
 
       end
     end
 
-    local newHover = vec2(tx, ty)
-    if self.hoverTile[1] ~= newHover[1] or self.hoverTile[2] ~= newHover[2] then
-      self.hoverTile = newHover
-      self.overlay("hoverPosition").position2d = m2scr(tx, ty)
-      self.overlay("hoverSprite").hidden = false
-      self.overlay("previewSpaces"):remove_all()
+    local hoverAlpha = 0.7 + 0.2 * math.sin(os.clock() * 6)
+    self.overlay("hoverSprite").color = canPlace and vec4(0.2, 1, 0.7, hoverAlpha) or vec4(1, 0.6, 0.4, hoverAlpha)
 
-      local spell = self.game:spellAt(tx, ty)
-      if spell then
-        local spellResult = spell:process()
-        for _, space in pairs(spellResult.spaces) do
-          self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"))
-        end
-      end
+    if self.hoverTile[1] ~= tx or self.hoverTile[2] ~= ty then
+      self:updateHoverlays(tx, ty)
     end
+
   elseif self.hoverTile[1] ~= 0 or self.hoverTile[2] ~= 0 then
-    self.hoverTile = vec2(0)
-    self.overlay("hoverSprite").hidden = true
-    self.overlay("previewSpaces"):remove_all()
+    self:updateHoverlays(false)
   end
 
   for _, button in pairs(self.buttons) do
     if util.rectContains(button.screenRect, mPos) then
-      if button.hoverCallback then
-        button:hoverCallback(true)
+      if not button.hovered then
+        button.hovered = true
+        if button.hoverCallback then
+          button:hoverCallback(true)
+        end
       end
 
       if button.clickCallback then
@@ -121,8 +216,11 @@ function Interface:update()
           button:clickCallback("right")
         end
       end
-    elseif button.hoverCallback then
-      button:hoverCallback(false)
+    elseif button.hovered then
+      button.hovered = false
+      if button.hoverCallback then
+        button:hoverCallback(false)
+      end
     end
   end
 end

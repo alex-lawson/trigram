@@ -14,7 +14,7 @@ local Spell = ...
 --   end
 -- end
 
-function Spell:new(x, y)
+function Spell.new(x, y)
   local newSpell = {
     x = x,
     y = y,
@@ -33,7 +33,7 @@ function Spell:new(x, y)
 end
 
 function Spell:canAddRune(slot, rune)
-  return self[slot.."Level"] == 0 or (self[slot.."Level"] < 3 and self[slot.."Type"] == rune)
+  return self[slot.."Level"] == 0 or (self[slot.."Level"] < 3 and self[slot.."Rune"] == rune)
 end
 
 function Spell:addRune(slot, rune)
@@ -71,7 +71,7 @@ end
 
 function Spell:processWithRune(slot, rune)
   if not self:canAddRune(slot, rune) then
-    return spell:process()
+    return self:process()
   else
     return util.merge(self, {
         [slot.."Rune"] = rune,
@@ -114,7 +114,7 @@ function Spell:process(overrides)
       local dist = spellConfig.bodyLevel * 2
       for x = -dist, dist do
         for y = -dist, dist do
-          if abs(x) + abs(y) == dist then
+          if math.abs(x) + math.abs(y) == dist then
             table.insert(res.spaces, spellPos + vec2(x, y))
           end
         end
@@ -128,7 +128,7 @@ function Spell:process(overrides)
     elseif spellConfig.heartRune == "cross" then
       res.modifyHealth = spellConfig.heartLevel
     elseif spellConfig.heartRune == "chaos" then
-      res.modifyHealth = spellConfig.heartLevel * (-1) ^ level
+      res.modifyHealth = spellConfig.heartLevel * (-1) ^ spellConfig.heartLevel
     end
   end
 

@@ -57,9 +57,9 @@ end
 
 setupWindow()
 
-local game = Game:new()
+local game = Game.new()
 
-local gui = Interface:new(game)
+local gui = Interface.new(game)
 
 win.scene = am.group({
       gui.underlay,

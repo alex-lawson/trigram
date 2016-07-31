@@ -5,7 +5,7 @@ local Spell = require "spell"
 
 local Game = ...
 
-function Game:new()
+function Game.new()
   local newGame = {
     node = am.group()
   }
@@ -100,7 +100,7 @@ function Game:placeRune(tx, ty, slot, rune)
   if spell then
     spell:addRune(slot, rune)
   else
-    local newSpell = Spell:new(tx, ty)
+    local newSpell = Spell.new(tx, ty)
     newSpell:addRune(slot, rune)
     table.insert(self.gameState.spells, newSpell)
     self.node:append(newSpell.node)
