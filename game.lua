@@ -30,10 +30,10 @@ function Game:reset()
   self.node:remove_all()
   self.node:append(self.tileLayer.node:tag("mapTileLayer"))
 
-  self:placeRune(3, 3, "body", "flame")
+  self:placeRune(3, 3, "body", "circle")
   self:placeRune(8, 3, "body", "cross")
   self:placeRune(8, 3, "heart", "cross")
-  self:placeRune(11, 7, "mind", "mask")
+  self:placeRune(11, 7, "mind", "chaos")
 end
 
 function Game:setupMap()

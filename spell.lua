@@ -2,17 +2,17 @@ local util = require "util"
 
 local Spell = ...
 
-function Spell.color(rune)
-  if rune == "flame" then
-    return vec4(0.9, 0.6, 0.2, 1.0)
-  elseif rune == "cross" then
-    return vec4(0.2, 0.9, 0.6, 1.0)
-  elseif rune == "mask" then
-    return vec4(0.8, 0.2, 0.7, 1.0)
-  else
-    return vec4(1)
-  end
-end
+-- function Spell.color(rune)
+--   if rune == "flame" then
+--     return vec4(0.9, 0.6, 0.2, 1.0)
+--   elseif rune == "cross" then
+--     return vec4(0.2, 0.9, 0.6, 1.0)
+--   elseif rune == "mask" then
+--     return vec4(0.8, 0.2, 0.7, 1.0)
+--   else
+--     return vec4(1)
+--   end
+-- end
 
 function Spell:new(x, y)
   local newSpell = {
@@ -24,7 +24,7 @@ function Spell:new(x, y)
     heartLevel = 0,
     mindRune = nil,
     mindLevel = 0,
-    node = am.translate(x * settings.tileSize[1], y * settings.tileSize[2])
+    node = am.translate((x - 0.5) * settings.tileSize[1], (y - 0.5) * settings.tileSize[2])
   }
 
   setmetatable(newSpell, { __index = Spell })
@@ -45,16 +45,28 @@ end
 function Spell:updateNode()
   self.node:remove_all()
 
-  local emptyColor = vec4(0.1, 0.1, 0.1, 1.0)
+  if self.bodyLevel > 0 then
+    self.node:append(am.sprite("images/runes/"..self.bodyRune.."-outer.png"))
+  end
 
-  local bodyColor = self.bodyLevel > 0 and Spell.color(self.bodyRune) or emptyColor
-  self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.25), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.25), 2, bodyColor))
+  if self.mindLevel > 0 then
+    self.node:append(am.sprite("images/runes/"..self.mindRune.."-mid.png"))
+  end
 
-  local heartColor = self.heartLevel > 0 and Spell.color(self.heartRune) or emptyColor
-  self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.50), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.50), 2, heartColor))
+  if self.heartLevel > 0 then
+    self.node:append(am.sprite("images/runes/"..self.heartRune.."-inner.png"))
+  end
 
-  local mindColor = self.mindLevel > 0 and Spell.color(self.mindRune) or emptyColor
-  self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.75), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.75), 2, mindColor))
+  -- local emptyColor = vec4(0.1, 0.1, 0.1, 1.0)
+
+  -- local bodyColor = self.bodyLevel > 0 and Spell.color(self.bodyRune) or emptyColor
+  -- self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.25), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.25), 2, bodyColor))
+
+  -- local heartColor = self.heartLevel > 0 and Spell.color(self.heartRune) or emptyColor
+  -- self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.50), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.50), 2, heartColor))
+
+  -- local mindColor = self.mindLevel > 0 and Spell.color(self.mindRune) or emptyColor
+  -- self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.75), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.75), 2, mindColor))
 end
 
 function Spell:processWithRune(slot, rune)
@@ -69,7 +81,9 @@ function Spell:processWithRune(slot, rune)
 end
 
 function Spell:process(overrides)
+  overrides = overrides or {}
   local spellConfig = util.merge(self, overrides)
+  local spellPos = vec2(spellConfig.x, spellConfig.y)
 
   local res = {
     spaces = {},
@@ -79,29 +93,29 @@ function Spell:process(overrides)
   }
 
   if spellConfig.bodyLevel > 0 then
-    if spellConfig.bodyRune == "flame" then
+    if spellConfig.bodyRune == "circle" then
       local dist = spellConfig.bodyLevel
       for x = -dist, dist do
         for y = -dist, dist do
-          table.insert(res.spaces, spellConfig.pos + vec2(x, y))
+          table.insert(res.spaces, spellPos + vec2(x, y))
         end
       end
     elseif spellConfig.bodyRune == "cross" then
       local dist = spellConfig.bodyLevel * 2
       for x = -dist, dist do
-        table.insert(res.spaces, spellConfig.pos + vec2(x, 0))
+        table.insert(res.spaces, spellPos + vec2(x, 0))
       end
       for y = -dist, dist do
         if y ~= 0 then
-          table.insert(res.spaces, spellConfig.pos + vec2(0, y))
+          table.insert(res.spaces, spellPos + vec2(0, y))
         end
       end
-    elseif spellConfig.bodyRune == "mask" then
+    elseif spellConfig.bodyRune == "chaos" then
       local dist = spellConfig.bodyLevel * 2
       for x = -dist, dist do
         for y = -dist, dist do
           if abs(x) + abs(y) == dist then
-            table.insert(res.spaces, spellConfig.pos + vec2(x, y))
+            table.insert(res.spaces, spellPos + vec2(x, y))
           end
         end
       end
@@ -109,21 +123,21 @@ function Spell:process(overrides)
   end
 
   if spellConfig.heartLevel > 0 then
-    if spellConfig.heartRune == "flame" then
+    if spellConfig.heartRune == "circle" then
       res.modifyHealth = -spellConfig.heartLevel
     elseif spellConfig.heartRune == "cross" then
       res.modifyHealth = spellConfig.heartLevel
-    elseif spellConfig.heartRune == "mask" then
+    elseif spellConfig.heartRune == "chaos" then
       res.modifyHealth = spellConfig.heartLevel * (-1) ^ level
     end
   end
 
   if spellConfig.mindLevel > 0 then
-    if spellConfig.mindRune == "flame" then
+    if spellConfig.mindRune == "circle" then
       table.insert(res.specials, "trigger")
     elseif spellConfig.mindRune == "cross" then
       table.insert(res.specials, "nullify")
-    elseif spellConfig.mindRune == "mask" then
+    elseif spellConfig.mindRune == "chaos" then
       res.modifyHealth = -res.modifyHealth
       res.modifySpeed = -res.modifySpeed
     end

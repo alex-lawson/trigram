@@ -5,7 +5,8 @@ local Interface = ...
 function Interface:new(game)
   local newInterface = {
     game = game,
-    buttons = {}
+    buttons = {},
+    hoverTile = vec2(0)
   }
 
   setmetatable(newInterface, { __index = Interface })
@@ -17,7 +18,8 @@ function Interface:new(game)
     }):tag("guiUnderlay")
 
   newInterface.overlay = am.group({
-      am.translate(0, 0):tag("hoverPosition") ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"):tag("hoverSprite")
+      am.translate(0, 0):tag("hoverPosition") ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"):tag("hoverSprite"),
+      am.group():tag("previewSpaces")
     }):tag("guiOverlay")
 
   for i = 1, 3 do
@@ -84,10 +86,26 @@ function Interface:update()
 
       end
     end
-    self.overlay("hoverPosition").position2d = m2scr(tx, ty)
-    self.overlay("hoverSprite").hidden = false
-  else
+
+    local newHover = vec2(tx, ty)
+    if self.hoverTile[1] ~= newHover[1] or self.hoverTile[2] ~= newHover[2] then
+      self.hoverTile = newHover
+      self.overlay("hoverPosition").position2d = m2scr(tx, ty)
+      self.overlay("hoverSprite").hidden = false
+      self.overlay("previewSpaces"):remove_all()
+
+      local spell = self.game:spellAt(tx, ty)
+      if spell then
+        local spellResult = spell:process()
+        for _, space in pairs(spellResult.spaces) do
+          self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"))
+        end
+      end
+    end
+  elseif self.hoverTile[1] ~= 0 or self.hoverTile[2] ~= 0 then
+    self.hoverTile = vec2(0)
     self.overlay("hoverSprite").hidden = true
+    self.overlay("previewSpaces"):remove_all()
   end
 
   for _, button in pairs(self.buttons) do
