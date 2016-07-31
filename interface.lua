@@ -17,11 +17,11 @@ function Interface:new(game)
     }):tag("guiUnderlay")
 
   newInterface.overlay = am.group({
-      am.translate(0, 0):tag("hoverPosition") ^ am.scale(settings.renderScale) ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"):tag("hoverSprite")
+      am.translate(0, 0):tag("hoverPosition") ^ am.sprite("images/tiles/selected.png", vec4(1), "left", "bottom"):tag("hoverSprite")
     }):tag("guiOverlay")
 
   for i = 1, 3 do
-    newInterface:addButton("images/runes/"..i..".png", vec2(win.left + (96 * i) - 48, win.top - 48), "rune"..i,
+    newInterface:addButton("images/runes/"..i..".png", vec2(-settings.windowSize[1] / 2 + 20 * i, settings.windowSize[2] / 2 - 10), "rune"..i,
       function(self, hovered)
         -- log("hover is %s, self is %s", hovered and "true" or "false", table.tostring(self))
         if hovered then
@@ -40,10 +40,10 @@ end
 
 function Interface:addButton(image, screenPos, tag, hoverCallback, clickCallback)
   local sprite = am.sprite(image)
-  local node = am.translate(screenPos[1], screenPos[2]) ^ am.scale(settings.guiScale) ^ sprite:tag(tag)
+  local node = am.translate(screenPos[1], screenPos[2]) ^ sprite:tag(tag)
   self.overlay:append(node)
-  local halfW = sprite.width * settings.guiScale * 0.5
-  local halfH = sprite.height * settings.guiScale * 0.5
+  local halfW = sprite.width * 0.5
+  local halfH = sprite.height * 0.5
 
   local newButton = {
     node = node,
@@ -61,10 +61,10 @@ end
 function Interface:update()
   if win:key_pressed("space") then
     if win:key_down("lshift") then
-      game:reset()
-      game:addPlayer("player1")
+      self.game:reset()
+      self.game:addPlayer("player1")
     else
-      game:endTurn()
+      self.game:endTurn()
     end
   end
 
