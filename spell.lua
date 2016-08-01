@@ -30,6 +30,31 @@ function Spell:addRune(slot, rune)
   self:updateNode()
 end
 
+function Spell:removeRune(slot)
+  if not slot then
+    if self.bodyLevel > 0 then
+      slot = "body"
+    elseif self.mindLevel > 0 then
+      slot = "mind"
+    elseif self.heartLevel > 0 then
+      slot = "heart"
+    end
+  end
+
+  local slotLevel = self[slot.."Level"]
+  if slotLevel > 0 then
+    slotLevel = slotLevel - 1
+    if slotLevel <= 0 then
+      self[slot.."Level"] = 0
+      self[slot.."Rune"] = nil
+    end
+  end
+end
+
+function Spell:dead()
+  return self.bodyLevel <= 0 and self.mindLevel <= 0 and self.heartLevel <= 0
+end
+
 function Spell:updateNode()
   self.node:remove_all()
 

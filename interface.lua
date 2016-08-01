@@ -153,10 +153,9 @@ end
 function Interface:update()
   if win:key_pressed("space") then
     if win:key_down("lshift") then
-      self.game:reset()
-      self.game:addPlayer("player1")
+      self.game:startNewGame()
     else
-      self.game:endTurn()
+      self.game:endEntityTurn()
     end
   end
 

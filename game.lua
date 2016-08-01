@@ -12,17 +12,25 @@ function Game.new()
 
   setmetatable(newGame, { __index = Game })
 
-  newGame:reset()
+  newGame:startNewGame()
 
   return newGame
 end
 
+function Game:startNewGame()
+  self:reset()
+  self:addPlayer("player1")
+  self:addPlayer("player2")
+  self:endGameTurn()
+end
+
 function Game:reset()
   self.gameState = {
-    players = {},
+    lastEntityId = 0,
+    entities = {},
     turn = 0,
     spells = {},
-    hoverTile = nil
+    initiative = {}
   }
 
   self:setupMap()
@@ -58,6 +66,11 @@ function Game:setupMap()
   end
 end
 
+function Game:nextEntityId()
+  self.gameState.lastEntityId = self.gameState.lastEntityId + 1
+  return self.gameState.lastEntityId
+end
+
 function Game:cycleTile(tx, ty, indexAdjust)
   -- log("cycling tile at %s, %s", tx, ty)
   local current = self.tileLayer:get(tx, ty)
@@ -68,9 +81,15 @@ end
 
 function Game:addPlayer(playerName)
   local player = {
+    eType = "player",
+    eId = self:nextEntityId(),
     name = playerName
   }
-  table.insert(self.gameState.players, player)
+  table.insert(self.gameState.entities, player)
+end
+
+function Game:removeEntity(eId)
+
 end
 
 function Game:spellAt(tx, ty)
@@ -102,6 +121,47 @@ function Game:placeRune(tx, ty, slot, rune)
   end
 end
 
-function Game:endTurn()
+function Game:removeRuneAt(tx, ty, slot)
+  local spell = self:spellAt(tx, ty)
+  if spell then
+    spell:removeRune(slot)
+    if spell:dead() then
+      self:removeSpell()
+    end
+  end
+end
 
+function Game:removeSpellAt(tx, ty)
+  local spell = self:spellAt(tx, ty)
+  if spell then
+    self:removeSpell(spell)
+  end
+end
+
+function Game:removeSpell(spell)
+  self.node:remove(spell.node)
+  table.remove(self.gameState.spells, spell)
+end
+
+function Game:endGameTurn()
+  log("Ending game turn %s", self.gameState.turn)
+  self.gameState.turn = self.gameState.turn + 1
+  self.gameState.initiative = {}
+  for eId, entity in pairs(self.gameState.entities) do
+    table.insert(self.gameState.initiative, entity)
+  end
+end
+
+function Game:endEntityTurn()
+  if #self.gameState.initiative > 0 then
+    log("Entity %s ended turn %s", self.gameState.initiative[1].name, self.gameState.turn)
+
+    table.remove(self.gameState.initiative, 1)
+  end
+
+  if #self.gameState.initiative > 0 then
+
+  else
+    self:endGameTurn()
+  end
 end

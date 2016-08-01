@@ -63,15 +63,6 @@ function tilePosValid(tx, ty)
   end
 end
 
-function updateDebugText()
-  local mousePos = win:mouse_position()
-  local text = string.format("mousePos %.1f, %.1f", mousePos[1], mousePos[2])
-  if util.rectContains(settings.mapScreenRect, mousePos) then
-    text = string.format("tilePos %d, %d ", scr2m(mousePos)) .. text
-  end
-  win.scene("debugText").text = text
-end
-
 setupWindow()
 
 local game = Game.new()
@@ -84,6 +75,19 @@ win.scene = am.group({
       gui.overlay,
       am.translate(settings.windowSize[1] / 2 - 1, settings.windowSize[2] / 2 - 1) ^ am.scale(1 / settings.renderScale) ^ am.text("mouse position", vec4(1), "right", "top"):tag("debugText")
     })
+
+function updateDebugText()
+  local mousePos = win:mouse_position()
+  local text = string.format("mousePos %.1f, %.1f\n", mousePos[1], mousePos[2])
+  if util.rectContains(settings.mapScreenRect, mousePos) then
+    text = string.format("tilePos %d, %d ", scr2m(mousePos)) .. text
+  end
+  if #game.gameState.initiative > 0 then
+    text = text .. string.format("player '%s' ", game.gameState.initiative[1].name)
+  end
+  text = text .. string.format("turn %d", game.gameState.turn)
+  win.scene("debugText").text = text
+end
 
 win.scene:action(function(scene)
     gui:update()
