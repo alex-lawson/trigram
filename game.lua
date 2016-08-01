@@ -48,7 +48,7 @@ function Game:setupMap()
   self.tileLayer:rebuildNodes()
 
   local function tileFor(tx, ty)
-    local hEdge = tx == 1 or tx == settings.mapSize[1]
+    local hEdge = tx == 1 or tx == settings.mapSize[1] or tx == math.ceil(settings.mapSize[1] / 2)
     local vEdge = ty == 1 or ty == settings.mapSize[2]
     if hEdge and vEdge then
       return 3
@@ -144,7 +144,7 @@ function Game:removeSpell(spell)
 end
 
 function Game:endGameTurn()
-  log("Ending game turn %s", self.gameState.turn)
+  -- log("Ending game turn %s", self.gameState.turn)
   self.gameState.turn = self.gameState.turn + 1
   self.gameState.initiative = {}
   for eId, entity in pairs(self.gameState.entities) do
@@ -154,7 +154,7 @@ end
 
 function Game:endEntityTurn()
   if #self.gameState.initiative > 0 then
-    log("Entity %s ended turn %s", self.gameState.initiative[1].name, self.gameState.turn)
+    -- log("Entity %s ended turn %s", self.gameState.initiative[1].name, self.gameState.turn)
 
     table.remove(self.gameState.initiative, 1)
   end

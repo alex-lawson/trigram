@@ -83,7 +83,7 @@ function updateDebugText()
     text = string.format("tilePos %d, %d ", scr2m(mousePos)) .. text
   end
   if #game.gameState.initiative > 0 then
-    text = text .. string.format("player '%s' ", game.gameState.initiative[1].name)
+    text = text .. string.format("entity %d '%s' ", game.gameState.initiative[1].eId, game.gameState.initiative[1].name)
   end
   text = text .. string.format("turn %d", game.gameState.turn)
   win.scene("debugText").text = text

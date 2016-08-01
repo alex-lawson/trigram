@@ -18,7 +18,9 @@ function Interface.new(game)
 
   newInterface.underlay = am.group({
       am.rect(settings.mapScreenRect[1] - 9, settings.mapScreenRect[2] - 9, settings.mapScreenRect[3] + 9, settings.mapScreenRect[4] + 9, vec4(0.5, 0.5, 0.3, 1)),
-      am.rect(settings.mapScreenRect[1] - 3, settings.mapScreenRect[2] - 3, settings.mapScreenRect[3] + 3, settings.mapScreenRect[4] + 3, vec4(0, 0, 0, 1))
+      am.rect(settings.mapScreenRect[1] - 3, settings.mapScreenRect[2] - 3, settings.mapScreenRect[3] + 3, settings.mapScreenRect[4] + 3, vec4(0, 0, 0, 1)),
+      am.rect((win.left / settings.renderScale) + 9, settings.mapScreenRect[2] - 9, settings.mapScreenRect[1] - 18, settings.mapScreenRect[4] + 9, vec4(0.5, 0.5, 0.3, 1)),
+      am.rect((win.left / settings.renderScale) + 15, settings.mapScreenRect[2] - 3, settings.mapScreenRect[1] - 24, settings.mapScreenRect[4] + 3, vec4(0, 0, 0, 1))
 
     }):tag("guiUnderlay")
 
@@ -28,7 +30,7 @@ function Interface.new(game)
     }):tag("guiOverlay")
 
   for i, rune in pairs({"circle", "cross", "chaos"}) do
-    local screenPos = vec2(-settings.windowSize[1] / 2 + 14 + 24 * (i - 1), settings.windowSize[2] / 2 - 14)
+    local screenPos = vec2(-settings.windowSize[1] / 2 + 21 + 24 * (i - 1), settings.windowSize[2] / 2 - 17)
 
     local node = am.translate(screenPos)
     newInterface.overlay:append(node)
