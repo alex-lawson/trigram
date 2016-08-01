@@ -1,9 +1,9 @@
 settings = {
-  mapSize = vec2(15, 11),
+  mapSize = vec2(25, 15),
   tileSize = vec2(16, 16),
   tileCount = 3,
   renderScale = 3.0,
-  mapPadding = vec4(100, 16, 16, 16),
+  mapPadding = vec4(100, 16, 16, 45),
   -- computed fields --
   windowSize = vec2(0),
   mapScreenSize = vec2(0),
@@ -55,6 +55,23 @@ function m2scr(mapX, mapY)
               (mapY - 1) * settings.tileSize[2] + settings.mapScreenRect[2])
 end
 
+function tilePosValid(tx, ty)
+  if ty then
+    return tx >= 1 and ty >= 1 and tx <= settings.mapSize[1] and ty <= settings.mapSize[2]
+  else
+    return tx[1] >= 1 and tx[2] >= 1 and tx[1] <= settings.mapSize[1] and tx[2] <= settings.mapSize[2]
+  end
+end
+
+function updateDebugText()
+  local mousePos = win:mouse_position()
+  local text = string.format("mousePos %.1f, %.1f", mousePos[1], mousePos[2])
+  if util.rectContains(settings.mapScreenRect, mousePos) then
+    text = string.format("tilePos %d, %d ", scr2m(mousePos)) .. text
+  end
+  win.scene("debugText").text = text
+end
+
 setupWindow()
 
 local game = Game.new()
@@ -65,10 +82,10 @@ win.scene = am.group({
       gui.underlay,
       am.translate(settings.mapScreenRect[1], settings.mapScreenRect[2]):tag("mapTranslate") ^ game.node,
       gui.overlay,
-      am.translate(settings.windowSize[1] / 2 - 1, settings.windowSize[2] / 2 - 1) ^ am.scale(1 / settings.renderScale) ^ am.text("mouse position", vec4(1), "right", "top"):tag("mouseText")
+      am.translate(settings.windowSize[1] / 2 - 1, settings.windowSize[2] / 2 - 1) ^ am.scale(1 / settings.renderScale) ^ am.text("mouse position", vec4(1), "right", "top"):tag("debugText")
     })
 
 win.scene:action(function(scene)
     gui:update()
-    win.scene("mouseText").text = string.format("%.1f, %.1f", win:mouse_position()[1], win:mouse_position()[2])
+    updateDebugText()
   end)

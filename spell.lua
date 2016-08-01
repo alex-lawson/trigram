@@ -2,18 +2,6 @@ local util = require "util"
 
 local Spell = ...
 
--- function Spell.color(rune)
---   if rune == "flame" then
---     return vec4(0.9, 0.6, 0.2, 1.0)
---   elseif rune == "cross" then
---     return vec4(0.2, 0.9, 0.6, 1.0)
---   elseif rune == "mask" then
---     return vec4(0.8, 0.2, 0.7, 1.0)
---   else
---     return vec4(1)
---   end
--- end
-
 function Spell.new(x, y)
   local newSpell = {
     x = x,
@@ -56,17 +44,6 @@ function Spell:updateNode()
   if self.heartLevel > 0 then
     self.node:append(am.sprite("images/runes/"..self.heartRune.."-inner.png"))
   end
-
-  -- local emptyColor = vec4(0.1, 0.1, 0.1, 1.0)
-
-  -- local bodyColor = self.bodyLevel > 0 and Spell.color(self.bodyRune) or emptyColor
-  -- self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.25), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.25), 2, bodyColor))
-
-  -- local heartColor = self.heartLevel > 0 and Spell.color(self.heartRune) or emptyColor
-  -- self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.50), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.50), 2, heartColor))
-
-  -- local mindColor = self.mindLevel > 0 and Spell.color(self.mindRune) or emptyColor
-  -- self.node:append(am.line(vec2(settings.tileSize[1] * 0.2, settings.tileSize[2] * 0.75), vec2(settings.tileSize[1] * 0.8, settings.tileSize[2] * 0.75), 2, mindColor))
 end
 
 function Spell:processWithRune(slot, rune)
@@ -121,6 +98,14 @@ function Spell:process(overrides)
       end
     end
   end
+
+  local filteredSpaces = {}
+  for _, space in pairs(res.spaces) do
+    if tilePosValid(space) then
+      table.insert(filteredSpaces, space)
+    end
+  end
+  res.spaces = filteredSpaces
 
   if spellConfig.heartLevel > 0 then
     if spellConfig.heartRune == "circle" then

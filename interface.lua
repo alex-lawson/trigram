@@ -185,7 +185,7 @@ function Interface:update()
           self:updateHoverlays()
         end
       elseif win:mouse_pressed("right") then
-
+        self:selectRune(self.selectedRune)
       end
     end
 
