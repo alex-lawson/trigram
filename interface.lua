@@ -19,8 +19,8 @@ function Interface.new(game)
   newInterface.underlay = am.group({
       am.rect(settings.mapScreenRect[1] - 9, settings.mapScreenRect[2] - 9, settings.mapScreenRect[3] + 9, settings.mapScreenRect[4] + 9, vec4(0.5, 0.5, 0.3, 1)),
       am.rect(settings.mapScreenRect[1] - 3, settings.mapScreenRect[2] - 3, settings.mapScreenRect[3] + 3, settings.mapScreenRect[4] + 3, vec4(0, 0, 0, 1)),
-      am.rect((win.left / settings.renderScale) + 9, settings.mapScreenRect[2] - 9, settings.mapScreenRect[1] - 18, settings.mapScreenRect[4] + 9, vec4(0.5, 0.5, 0.3, 1)),
-      am.rect((win.left / settings.renderScale) + 15, settings.mapScreenRect[2] - 3, settings.mapScreenRect[1] - 24, settings.mapScreenRect[4] + 3, vec4(0, 0, 0, 1))
+      -- am.rect((win.left / settings.renderScale) + 9, settings.mapScreenRect[2] - 9, settings.mapScreenRect[1] - 18, settings.mapScreenRect[4] + 9, vec4(0.5, 0.5, 0.3, 1)),
+      -- am.rect((win.left / settings.renderScale) + 15, settings.mapScreenRect[2] - 3, settings.mapScreenRect[1] - 24, settings.mapScreenRect[4] + 3, vec4(0, 0, 0, 1))
 
     }):tag("guiUnderlay")
 
@@ -134,15 +134,36 @@ function Interface:updateHoverlays(tx, ty)
       win.scene("mapTranslate"):append(previewSpell.node:tag("previewSpell"))
     end
 
+    local spellSpaces = ary2d()
+
     local spellResult
     if spell then
-      spellResult = spell:processWithRune(self.selectedSlotName, self.selectedRune)
-    else
-      spellResult = previewSpell:process()
+      spellResult = spell:process()
+      for _, space in pairs(spellResult.spaces) do
+        spellSpaces[space[1]][space[2]] = "old"
+      end
     end
 
-    for _, space in pairs(spellResult.spaces) do
-      self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite("images/interface/tileoverlay/aoe.png", vec4(1), "left", "bottom"))
+    local previewSpellResult
+    if previewSpell then
+      if not spell then
+        previewSpellResult = previewSpell:process()
+      else
+        previewSpellResult = spell:processWithRune(self.selectedSlotName, self.selectedRune)
+      end
+    end
+
+    if previewSpellResult then
+      for _, space in pairs(previewSpellResult.spaces) do
+        local tex = spellSpaces[space[1]][space[2]] == "old" and "images/interface/tileoverlay/aoe.png" or "images/interface/tileoverlay/aoepreview.png"
+        self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite(tex, vec4(1), "left", "bottom"))
+        self.overlay("hoverSprite").hidden = true
+      end
+    elseif spellResult then
+      for _, space in pairs(spellResult.spaces) do
+        self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite("images/interface/tileoverlay/aoe.png", vec4(1), "left", "bottom"))
+        self.overlay("hoverSprite").hidden = true
+      end
     end
   else
     self.hoverTile = vec2(0)
@@ -153,6 +174,11 @@ function Interface:updateHoverlays(tx, ty)
 end
 
 function Interface:update()
+  if win:key_pressed("escape") then
+    win:close()
+    return
+  end
+
   if win:key_pressed("space") then
     if win:key_down("lshift") then
       self.game:startNewGame()

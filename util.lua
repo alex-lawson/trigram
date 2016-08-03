@@ -52,3 +52,26 @@ end
 function util.rectContains(rect, point)
   return point[1] >= rect[1] and point[2] >= rect[2] and point[1] <= rect[3] and point[2] <= rect[4]
 end
+
+function vec2eq(v1, v2)
+  return v1[1] == v2[1] and v1[2] == v2[2]
+end
+
+function ary2d()
+  local newAry2d = {}
+
+  local mt = {}
+
+  mt.__index = function(t, k)
+    local v = rawget(newAry2d, k)
+    if not v then
+      v = {}
+      rawset(newAry2d, k, v)
+    end
+    return v
+  end
+
+  setmetatable(newAry2d, mt)
+
+  return newAry2d
+end
