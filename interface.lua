@@ -157,12 +157,12 @@ function Interface:updateHoverlays(tx, ty)
       for _, space in pairs(previewSpellResult.spaces) do
         local tex = spellSpaces[space[1]][space[2]] == "old" and "images/interface/tileoverlay/aoe.png" or "images/interface/tileoverlay/aoepreview.png"
         self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite(tex, vec4(1), "left", "bottom"))
-        self.overlay("hoverSprite").hidden = true
+        -- self.overlay("hoverSprite").hidden = true
       end
     elseif spellResult then
       for _, space in pairs(spellResult.spaces) do
         self.overlay("previewSpaces"):append(am.translate(m2scr(space[1], space[2])):tag("previewSpace") ^ am.sprite("images/interface/tileoverlay/aoe.png", vec4(1), "left", "bottom"))
-        self.overlay("hoverSprite").hidden = true
+        -- self.overlay("hoverSprite").hidden = true
       end
     end
   else
@@ -203,6 +203,7 @@ function Interface:update()
       self.game:startNewGame()
     else
       self.game:endEntityTurn()
+      self.game:save("autosave")
     end
   end
 
@@ -229,14 +230,15 @@ function Interface:update()
         if self.game:canPlaceRune(tx, ty, self.selectedSlotName, self.selectedRune) then
           self.game:placeRune(tx, ty, self.selectedSlotName, self.selectedRune)
           self:updateHoverlays()
+          self.game:save("autosave")
         end
       elseif win:mouse_pressed("right") then
         self:selectRune(self.selectedRune)
       end
     end
 
-    local hoverAlpha = 0.7 + 0.2 * math.sin(os.clock() * 6)
-    self.overlay("hoverSprite").color = canPlace and vec4(0.2, 1, 0.7, hoverAlpha) or vec4(1, 0.6, 0.4, hoverAlpha)
+    local hoverAlpha = 0.5 + 0.2 * math.sin(os.clock() * 6)
+    self.overlay("hoverSprite").color = canPlace and vec4(0.4, 1, 0.6, hoverAlpha) or vec4(0.6, 0.4, 0.4, hoverAlpha)
 
     if self.hoverTile[1] ~= tx or self.hoverTile[2] ~= ty then
       self:updateHoverlays(tx, ty)

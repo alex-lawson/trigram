@@ -67,6 +67,8 @@ setupWindow()
 
 local game = Game.new()
 
+game:load("autosave")
+
 local gui = Interface.new(game)
 
 win.scene = am.group({
