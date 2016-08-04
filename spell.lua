@@ -2,6 +2,27 @@ local util = require "util"
 
 local Spell = ...
 
+function SaveSpell(spell)
+  return {
+    x = spell.x,
+    y = spell.y,
+    bodyRune = spell.bodyRune,
+    bodyLevel = spell.bodyLevel,
+    heartRune = spell.heartRune,
+    heartLevel = spell.heartLevel,
+    mindRune = spell.mindRune,
+    mindLevel = spell.mindLevel
+  }
+end
+
+function LoadSpell(spellData)
+  local newSpell = spellData
+
+  setmetatable(newSpell, { __index = Spell })
+
+  return newSpell
+end
+
 function Spell.new(x, y)
   local newSpell = {
     x = x,
@@ -11,8 +32,7 @@ function Spell.new(x, y)
     heartRune = nil,
     heartLevel = 0,
     mindRune = nil,
-    mindLevel = 0,
-    node = am.translate((x - 0.5) * settings.tileSize[1], (y - 0.5) * settings.tileSize[2])
+    mindLevel = 0
   }
 
   setmetatable(newSpell, { __index = Spell })
@@ -27,7 +47,6 @@ end
 function Spell:addRune(slot, rune)
   self[slot.."Rune"] = rune
   self[slot.."Level"] = self[slot.."Level"] + 1
-  self:updateNode()
 end
 
 function Spell:removeRune(slot)
@@ -55,20 +74,22 @@ function Spell:dead()
   return self.bodyLevel <= 0 and self.mindLevel <= 0 and self.heartLevel <= 0
 end
 
-function Spell:updateNode()
-  self.node:remove_all()
+function Spell:buildNode()
+  local node = am.translate((self.x - 0.5) * settings.tileSize[1], (self.y - 0.5) * settings.tileSize[2])
 
   if self.bodyLevel > 0 then
-    self.node:append(am.sprite("images/runes/"..self.bodyRune.."-outer.png"))
+    node:append(am.sprite("images/runes/"..self.bodyRune.."-outer.png"))
   end
 
   if self.mindLevel > 0 then
-    self.node:append(am.sprite("images/runes/"..self.mindRune.."-mid.png"))
+    node:append(am.sprite("images/runes/"..self.mindRune.."-mid.png"))
   end
 
   if self.heartLevel > 0 then
-    self.node:append(am.sprite("images/runes/"..self.heartRune.."-inner.png"))
+    node:append(am.sprite("images/runes/"..self.heartRune.."-inner.png"))
   end
+
+  return node
 end
 
 function Spell:processWithRune(slot, rune)

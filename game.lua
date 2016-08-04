@@ -35,8 +35,7 @@ function Game:reset()
 
   self:setupMap()
 
-  self.node:remove_all()
-  self.node:append(self.tileLayer.node:tag("mapTileLayer"))
+  self:updateNode()
 end
 
 function Game:setupMap()
@@ -80,16 +79,29 @@ function Game:cycleTile(tx, ty, indexAdjust)
 end
 
 function Game:addPlayer(playerName)
-  local player = {
+  local eId = self:nextEntityId()
+  local newPlayer = {
     eType = "player",
-    eId = self:nextEntityId(),
+    eId = eId,
     name = playerName
   }
-  table.insert(self.gameState.entities, player)
+  self.gameState.entities[eId] = newPlayer
+  self:updateNode()
+end
+
+function Game:activeEntity()
+  if #self.gameState.initiative > 0 then
+    return self:entity(self.gameState.initiative[1])
+  end
+end
+
+function Game:entity(eId)
+  return self.gameState.entities[eId]
 end
 
 function Game:removeEntity(eId)
-
+  self.gameState.entities[eId] = nil
+  self:updateNode()
 end
 
 function Game:spellAt(tx, ty)
@@ -117,8 +129,8 @@ function Game:placeRune(tx, ty, slot, rune)
     local newSpell = Spell.new(tx, ty)
     newSpell:addRune(slot, rune)
     table.insert(self.gameState.spells, newSpell)
-    self.node:append(newSpell.node)
   end
+  self:updateNode()
 end
 
 function Game:removeRuneAt(tx, ty, slot)
@@ -139,8 +151,8 @@ function Game:removeSpellAt(tx, ty)
 end
 
 function Game:removeSpell(spell)
-  self.node:remove(spell.node)
   table.remove(self.gameState.spells, spell)
+  self:updateNode()
 end
 
 function Game:endGameTurn()
@@ -148,7 +160,7 @@ function Game:endGameTurn()
   self.gameState.turn = self.gameState.turn + 1
   self.gameState.initiative = {}
   for eId, entity in pairs(self.gameState.entities) do
-    table.insert(self.gameState.initiative, entity)
+    table.insert(self.gameState.initiative, eId)
   end
 end
 
@@ -163,5 +175,40 @@ function Game:endEntityTurn()
 
   else
     self:endGameTurn()
+  end
+end
+
+function Game:save(saveName)
+  local toSave = table.shallow_copy(self.gameState)
+  local spellsToSave = {}
+  for _, spell in pairs(self.gameState.spells) do
+    table.insert(spellsToSave, SaveSpell(spell))
+  end
+  toSave.spells = spellsToSave
+  am.save_state(saveName, toSave)
+  log("Saved game as '%s'", saveName)
+end
+
+function Game:load(saveName)
+  local savedState = am.load_state(saveName)
+  if savedState then
+    local spells = {}
+    for _, spellData in pairs(savedState.spells) do
+      table.insert(spells, LoadSpell(spellData))
+    end
+    savedState.spells = spells
+    self.gameState = savedState
+    self:updateNode()
+    log("Loaded save '%s'", saveName)
+  else
+    log("Failed to load save '%s'", saveName)
+  end
+end
+
+function Game:updateNode()
+  self.node:remove_all()
+  self.node:append(self.tileLayer.node:tag("mapTileLayer"))
+  for _, spell in pairs(self.gameState.spells) do
+    self.node:append(spell:buildNode())
   end
 end

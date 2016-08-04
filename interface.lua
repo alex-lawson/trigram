@@ -131,7 +131,7 @@ function Interface:updateHoverlays(tx, ty)
     end
 
     if previewSpell then
-      win.scene("mapTranslate"):append(previewSpell.node:tag("previewSpell"))
+      win.scene("mapTranslate"):append(previewSpell:buildNode():tag("previewSpell"))
     end
 
     local spellSpaces = ary2d()
@@ -177,6 +177,25 @@ function Interface:update()
   if win:key_pressed("escape") then
     win:close()
     return
+  end
+
+  local saveName
+  if win:key_pressed("f1") then
+    saveName = "quick1"
+  elseif win:key_pressed("f2") then
+    saveName = "quick2"
+  elseif win:key_pressed("f3") then
+    saveName = "quick3"
+  elseif win:key_pressed("f4") then
+    saveName = "quick4"
+  end
+
+  if saveName then
+    if win:key_down("lshift") then
+      self.game:save(saveName)
+    else
+      self.game:load(saveName)
+    end
   end
 
   if win:key_pressed("space") then
