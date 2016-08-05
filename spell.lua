@@ -70,6 +70,10 @@ function Spell:removeRune(slot)
   end
 end
 
+function Spell:complete()
+  return self.bodyLevel > 0 and self.mindLevel > 0 and self.heartLevel > 0
+end
+
 function Spell:dead()
   return self.bodyLevel <= 0 and self.mindLevel <= 0 and self.heartLevel <= 0
 end
@@ -111,7 +115,7 @@ function Spell:process(overrides)
   local res = {
     spaces = {},
     modifyHealth = 0,
-    modifySpeed = 0,
+    modifyMove = 0,
     specials = {}
   }
 
@@ -170,7 +174,7 @@ function Spell:process(overrides)
       table.insert(res.specials, "nullify")
     elseif spellConfig.mindRune == "chaos" then
       res.modifyHealth = -res.modifyHealth
-      res.modifySpeed = -res.modifySpeed
+      res.modifyMove = -res.modifyMove
     end
   end
 

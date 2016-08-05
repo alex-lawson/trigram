@@ -19,8 +19,8 @@ end
 
 function Game:startNewGame()
   self:reset()
-  self:addPlayer("player1")
-  self:addPlayer("player2")
+  self:addPlayer(3, 3, "player1", "/images/player/player1.png")
+  self:addPlayer(settings.mapSize[1] - 3, settings.mapSize[2] - 3, "player2", "/images/player/player2.png")
   self:endGameTurn()
 end
 
@@ -78,12 +78,20 @@ function Game:cycleTile(tx, ty, indexAdjust)
   end
 end
 
-function Game:addPlayer(playerName)
+function Game:addPlayer(tx, ty, playerName, playerTex)
   local eId = self:nextEntityId()
   local newPlayer = {
     eType = "player",
     eId = eId,
-    name = playerName
+    name = playerName,
+    tex = playerTex,
+    texY = 4,
+    x = tx,
+    y = ty,
+    hp = 10,
+    hpMax = 10,
+    mp = 3,
+    mpMax = 3
   }
   self.gameState.entities[eId] = newPlayer
   self:updateNode()
@@ -97,6 +105,14 @@ end
 
 function Game:entity(eId)
   return self.gameState.entities[eId]
+end
+
+function Game:entityAt(tx, ty)
+  for eId, entity in pairs(self.gameState.entities) do
+    if entity.x == tx and entity.y == ty then
+      return entity
+    end
+  end
 end
 
 function Game:removeEntity(eId)
@@ -125,6 +141,9 @@ function Game:placeRune(tx, ty, slot, rune)
   local spell = self:spellAt(tx, ty)
   if spell then
     spell:addRune(slot, rune)
+    if spell:complete() then
+      self:completeSpell(spell)
+    end
   else
     local newSpell = Spell.new(tx, ty)
     newSpell:addRune(slot, rune)
@@ -137,9 +156,7 @@ function Game:removeRuneAt(tx, ty, slot)
   local spell = self:spellAt(tx, ty)
   if spell then
     spell:removeRune(slot)
-    if spell:dead() then
-      self:removeSpell()
-    end
+    self:processSpells()
   end
 end
 
@@ -151,8 +168,34 @@ function Game:removeSpellAt(tx, ty)
 end
 
 function Game:removeSpell(spell)
-  table.remove(self.gameState.spells, spell)
+  table.remove_all(self.gameState.spells, spell)
   self:updateNode()
+end
+
+function Game:completeSpell(spell)
+  local spellResult = spell:process()
+  for _, space in pairs(spellResult.spaces) do
+    local tarEntity = self:entityAt(space[1], space[2])
+    if tarEntity then
+
+    end
+
+    local tarSpell = self:spellAt(space[1], space[2])
+    if tarSpell then
+
+    end
+  end
+  self:removeSpell(spell)
+end
+
+function Game:processSpells()
+  for _, spell in pairs(table.shallow_copy(self.gameState.spells)) do
+    if spell:dead() then
+      self:removeSpell(spell)
+    elseif spell:complete() then
+      completeSpell(spell)
+    end
+  end
 end
 
 function Game:endGameTurn()
@@ -166,8 +209,11 @@ end
 
 function Game:endEntityTurn()
   if #self.gameState.initiative > 0 then
-    -- log("Entity %s ended turn %s", self.gameState.initiative[1].name, self.gameState.turn)
-
+    local ender = self:entity(self.gameState.initiative[1])
+    if ender.eType == "player" then
+      ender.mp = ender.mpMax
+    end
+    -- log("Entity %s ended turn %s", ender.name, self.gameState.turn)
     table.remove(self.gameState.initiative, 1)
   end
 
@@ -186,7 +232,7 @@ function Game:save(saveName)
   end
   toSave.spells = spellsToSave
   am.save_state(saveName, toSave)
-  log("Saved game as '%s'", saveName)
+  -- log("Saved game as '%s'", saveName)
 end
 
 function Game:load(saveName)
@@ -199,7 +245,7 @@ function Game:load(saveName)
     savedState.spells = spells
     self.gameState = savedState
     self:updateNode()
-    log("Loaded save '%s'", saveName)
+    -- log("Loaded save '%s'", saveName)
   else
     log("Failed to load save '%s'", saveName)
   end
@@ -210,5 +256,10 @@ function Game:updateNode()
   self.node:append(self.tileLayer.node:tag("mapTileLayer"))
   for _, spell in pairs(self.gameState.spells) do
     self.node:append(spell:buildNode())
+  end
+
+  for eId, entity in pairs(self.gameState.entities) do
+    local newNode = am.translate((entity.x - 0.5) * settings.tileSize[1] + (entity.texX or 0), (entity.y - 0.5) * settings.tileSize[2] + (entity.texY or 0)) ^ am.sprite(entity.tex)
+    self.node:append(newNode)
   end
 end

@@ -67,7 +67,7 @@ setupWindow()
 
 local game = Game.new()
 
-game:load("autosave")
+-- game:load("autosave")
 
 local gui = Interface.new(game)
 
@@ -87,12 +87,12 @@ function updateDebugText()
   if #game.gameState.initiative > 0 then
     local entity = game:activeEntity()
     if entity then
-      text = text .. string.format("entity %d '%s' ", entity.eId, entity.name)
+      text = text .. string.format("%s %d '%s'  hp: %d / %d  mp: %d / %d", entity.eType, entity.eId, entity.name, entity.hp, entity.hpMax, entity.mp, entity.mpMax)
     else
       text = text .. "<no entity turn active>"
     end
   end
-  text = text .. string.format("turn %d", game.gameState.turn)
+  text = text .. string.format("\nturn %d", game.gameState.turn)
   win.scene("debugText").text = text
 end
 
