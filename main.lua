@@ -67,7 +67,7 @@ setupWindow()
 
 local game = Game.new()
 
--- game:load("autosave")
+game:load("autosave")
 
 local gui = Interface.new(game)
 

@@ -1,4 +1,5 @@
 local util = require "util"
+local testsprites = require "testsprites"
 
 local Spell = ...
 
@@ -82,15 +83,15 @@ function Spell:buildNode()
   local node = am.translate((self.x - 0.5) * settings.tileSize[1], (self.y - 0.5) * settings.tileSize[2])
 
   if self.bodyLevel > 0 then
-    node:append(am.sprite("images/runes/"..self.bodyRune.."-outer.png"))
+    node:append(am.sprite(testsprites[self.bodyRune.."-outer"]))
   end
 
   if self.mindLevel > 0 then
-    node:append(am.sprite("images/runes/"..self.mindRune.."-mid.png"))
+    node:append(am.sprite(testsprites[self.mindRune.."-mid"]))
   end
 
   if self.heartLevel > 0 then
-    node:append(am.sprite("images/runes/"..self.heartRune.."-inner.png"))
+    node:append(am.sprite(testsprites[self.heartRune.."-inner"]))
   end
 
   return node

@@ -1,0 +1,121 @@
+local font_data = {
+    minfilter = "nearest",
+    magfilter = "nearest",
+    is_premult = true,
+    {
+        filename = "images/runes/1.png",
+        x1 = 0, y1 = 0, x2 = 16, y2 = 16,
+        s1 = 0.359375, t1 = 0.421875, s2 = 0.484375, t2 = 0.671875,
+        width = 16, height = 16,
+    },
+    {
+        filename = "images/runes/2.png",
+        x1 = 0, y1 = 0, x2 = 16, y2 = 16,
+        s1 = 0.21875, t1 = 0.421875, s2 = 0.34375, t2 = 0.671875,
+        width = 16, height = 16,
+    },
+    {
+        filename = "images/runes/3.png",
+        x1 = 0, y1 = 0, x2 = 16, y2 = 16,
+        s1 = 0.84375, t1 = 0.453125, s2 = 0.96875, t2 = 0.703125,
+        width = 16, height = 16,
+    },
+    {
+        filename = "images/runes/4.png",
+        x1 = 0, y1 = 0, x2 = 16, y2 = 16,
+        s1 = 0.84375, t1 = 0.734375, s2 = 0.96875, t2 = 0.984375,
+        width = 16, height = 16,
+    },
+    {
+        filename = "images/runes/5.png",
+        x1 = 0, y1 = 0, x2 = 16, y2 = 16,
+        s1 = 0.640625, t1 = 0.421875, s2 = 0.765625, t2 = 0.671875,
+        width = 16, height = 16,
+    },
+    {
+        filename = "images/runes/6.png",
+        x1 = 0, y1 = 0, x2 = 16, y2 = 16,
+        s1 = 0.5, t1 = 0.421875, s2 = 0.625, t2 = 0.671875,
+        width = 16, height = 16,
+    },
+    {
+        filename = "images/runes/chaos-inner.png",
+        x1 = 5, y1 = 5, x2 = 13, y2 = 13,
+        s1 = 0.2421875, t1 = 0.265625, s2 = 0.3046875, t2 = 0.390625,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/chaos-mid.png",
+        x1 = 3, y1 = 2, x2 = 15, y2 = 16,
+        s1 = 0.78125, t1 = 0.203125, s2 = 0.875, t2 = 0.421875,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/chaos-outer.png",
+        x1 = 0, y1 = 0, x2 = 18, y2 = 18,
+        s1 = 0.375, t1 = 0.703125, s2 = 0.515625, t2 = 0.984375,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/circle-inner.png",
+        x1 = 6, y1 = 6, x2 = 12, y2 = 12,
+        s1 = 0.3984375, t1 = 0.296875, s2 = 0.4453125, t2 = 0.390625,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/circle-mid.png",
+        x1 = 3, y1 = 3, x2 = 15, y2 = 15,
+        s1 = 0.1328125, t1 = 0.203125, s2 = 0.2265625, t2 = 0.390625,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/circle-outer.png",
+        x1 = 0, y1 = 0, x2 = 18, y2 = 18,
+        s1 = 0.6875, t1 = 0.703125, s2 = 0.828125, t2 = 0.984375,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/cross-inner.png",
+        x1 = 5, y1 = 5, x2 = 13, y2 = 13,
+        s1 = 0.3203125, t1 = 0.265625, s2 = 0.3828125, t2 = 0.390625,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/cross-mid.png",
+        x1 = 2, y1 = 2, x2 = 16, y2 = 16,
+        s1 = 0.0078125, t1 = 0.34375, s2 = 0.1171875, t2 = 0.5625,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/cross-outer.png",
+        x1 = 0, y1 = 0, x2 = 18, y2 = 18,
+        s1 = 0.21875, t1 = 0.703125, s2 = 0.359375, t2 = 0.984375,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/mask.png",
+        x1 = 0, y1 = 0, x2 = 25, y2 = 25,
+        s1 = 0.0078125, t1 = 0.59375, s2 = 0.203125, t2 = 0.984375,
+        width = 25, height = 25,
+    },
+    {
+        filename = "images/runes/square-inner.png",
+        x1 = 6, y1 = 6, x2 = 12, y2 = 12,
+        s1 = 0.4609375, t1 = 0.296875, s2 = 0.5078125, t2 = 0.390625,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/square-mid.png",
+        x1 = 3, y1 = 3, x2 = 15, y2 = 15,
+        s1 = 0.890625, t1 = 0.234375, s2 = 0.984375, t2 = 0.421875,
+        width = 18, height = 18,
+    },
+    {
+        filename = "images/runes/square-outer.png",
+        x1 = 0, y1 = 0, x2 = 18, y2 = 18,
+        s1 = 0.53125, t1 = 0.703125, s2 = 0.671875, t2 = 0.984375,
+        width = 18, height = 18,
+    },
+}
+
+return am._init_fonts(font_data, "testsprites.png")
