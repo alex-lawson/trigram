@@ -91,7 +91,10 @@ function Game:addPlayer(tx, ty, playerName, playerTex)
     hp = 10,
     hpMax = 10,
     mp = 3,
-    mpMax = 3
+    mpMax = 3,
+    sp = 2,
+    spMax = 2,
+    range = 3
   }
   self.gameState.entities[eId] = newPlayer
   self:updateNode()

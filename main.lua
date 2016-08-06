@@ -67,8 +67,6 @@ setupWindow()
 
 local game = Game.new()
 
-game:load("autosave")
-
 local gui = Interface.new(game)
 
 win.scene = am.group({
@@ -77,6 +75,10 @@ win.scene = am.group({
       gui.overlay,
       am.translate(settings.windowSize[1] / 2 - 1, settings.windowSize[2] / 2 - 1) ^ am.scale(1 / settings.renderScale) ^ am.text("mouse position", vec4(1), "right", "top"):tag("debugText")
     })
+
+game:load("autosave")
+
+gui:updateAllNodes()
 
 function updateDebugText()
   local mousePos = win:mouse_position()

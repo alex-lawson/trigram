@@ -73,7 +73,7 @@ function Interface.new(game)
     table.insert(newInterface.buttons, newButton)
   end
 
-  newInterface:updateRuneButtons()
+  newInterface.overlay:append(am.translate((win.left / settings.renderScale) + 8, settings.mapScreenRect[4]) ^ am.scale(2 / settings.renderScale):tag("playerInfo"))
 
   return newInterface
 end
@@ -99,6 +99,16 @@ function Interface:selectRune(rune)
   self:updateHoverlays()
 end
 
+function Interface:updateAllNodes()
+  self:updateRuneButtons()
+  self:updatePlayerInfo()
+  if self.hoverTile then
+    self:updateHoverlays(self.hoverTile[1], self.hoverTile[2])
+  else
+    self:updateHoverlays()
+  end
+end
+
 function Interface:updateRuneButtons()
   local selectedColor = vec4(1, 1, 1, 1)
   local deselectedColor = vec4(0.5, 0.5, 0.5, 1)
@@ -113,13 +123,41 @@ function Interface:updateRuneButtons()
   self.overlay(self.selectedRune.."baseSprite").source = "images/interface/runebuttonbgselected.png"
 end
 
+function Interface:updatePlayerInfo()
+  local node = self.overlay("playerInfo")
+  node:remove_all()
+
+  local player = self.game:activeEntity()
+  if player and player.eType == "player" then
+    -- log("displaying player: "..table.tostring(player))
+    local spacing = 3
+    local nameNode = am.text(player.name, vec4(1), "left", "top")
+    node:append(nameNode)
+    local yOffset = - nameNode.height - 2 * spacing
+    local hpNode = am.text(string.format("HP: %d / %d", player.hp, player.hpMax), vec4(1), "left", "top")
+    node:append(am.translate(0, yOffset) ^ hpNode)
+    yOffset = yOffset - hpNode.height - spacing
+    local mpNode = am.text(string.format("MP: %d / %d", player.mp, player.mpMax), vec4(1), "left", "top")
+    node:append(am.translate(0, yOffset) ^ mpNode)
+    yOffset = yOffset - mpNode.height - spacing
+    local spNode = am.text(string.format("SP: %d / %d", player.sp, player.spMax), vec4(1), "left", "top")
+    node:append(am.translate(0, yOffset) ^ spNode)
+    yOffset = yOffset - spNode.height - spacing
+    local rangeNode = am.text(string.format("Range: %d", player.range), vec4(1), "left", "top")
+    node:append(am.translate(0, yOffset) ^ rangeNode)
+  else
+    node:append(am.text("<NPC Turn>", vec4(1), "left", "top"))
+  end
+end
+
 function Interface:updateHoverlays(tx, ty)
+  self.overlay("previewSpaces"):remove_all()
+  win.scene("mapTranslate"):remove("previewSpell")
+
   if tx then
     self.hoverTile = vec2(tx, ty)
     self.overlay("hoverPosition").position2d = m2scr(tx, ty)
     self.overlay("hoverSprite").hidden = false
-    self.overlay("previewSpaces"):remove_all()
-    win.scene("mapTranslate"):remove("previewSpell")
 
     local spell = self.game:spellAt(tx, ty)
     local previewSpell
@@ -168,8 +206,6 @@ function Interface:updateHoverlays(tx, ty)
   else
     self.hoverTile = vec2(0)
     self.overlay("hoverSprite").hidden = true
-    self.overlay("previewSpaces"):remove_all()
-    win.scene("mapTranslate"):remove("previewSpell")
   end
 end
 
@@ -201,8 +237,10 @@ function Interface:update()
   if win:key_pressed("space") then
     if win:key_down("lshift") then
       self.game:startNewGame()
+      self:updatePlayerInfo()
     else
       self.game:endEntityTurn()
+      self:updatePlayerInfo()
       self.game:save("autosave")
     end
   end
@@ -229,7 +267,8 @@ function Interface:update()
       if win:mouse_pressed("left") then
         if self.game:canPlaceRune(tx, ty, self.selectedSlotName, self.selectedRune) then
           self.game:placeRune(tx, ty, self.selectedSlotName, self.selectedRune)
-          self:updateHoverlays()
+          self:updatePlayerInfo()
+          self:updateHoverlays(tx, ty)
           self.game:save("autosave")
         end
       elseif win:mouse_pressed("right") then
