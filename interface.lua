@@ -8,7 +8,7 @@ function Interface.new(game)
     game = game,
     buttons = {},
     hoverTile = vec2(0),
-    selectedRune = "circle",
+    -- selectedRune = "circle",
     selectedSlotIndex = 1,
     selectedSlot = "outer",
     selectedSlotName = "body" -- TODO: get rid of this ridiculous disparity in terms
@@ -32,7 +32,7 @@ function Interface.new(game)
   for i, rune in pairs({"circle", "cross", "chaos"}) do
     local screenPos = vec2(-settings.windowSize[1] / 2 + 21 + 24 * (i - 1), settings.windowSize[2] / 2 - 17)
 
-    local node = am.translate(screenPos)
+    local node = am.translate(screenPos):tag(rune.."button"):tag("runeButton")
     newInterface.overlay:append(node)
 
     local baseSprite = am.sprite("images/interface/runebuttonbg.png"):tag("runeBaseSprite"):tag(rune.."baseSprite")
@@ -85,18 +85,22 @@ local runeSlotNames = {
 }
 
 function Interface:selectRune(rune)
+  local player = self.game:currentPlayer()
+  if rune and player and not table.search(player.runes, rune) then
+    return
+  end
+
   if self.selectedRune ~= rune then
     self.selectedRune = rune
     -- log("rune shifted to %s", self.selectedRune)
-  else
+  elseif rune ~= nil then
     local slots = {"outer", "mid", "inner"}
     self.selectedSlotIndex = self.selectedSlotIndex % 3 + 1
     self.selectedSlot = slots[self.selectedSlotIndex]
     self.selectedSlotName = runeSlotNames[self.selectedSlot]
     -- log("rune slot advanced to %s : %s '%s'", self.selectedSlotIndex, self.selectedSlot, self.selectedSlotName)
   end
-  self:updateRuneButtons()
-  self:updateHoverlays()
+  self:updateAllNodes()
 end
 
 function Interface:updateAllNodes()
@@ -110,26 +114,39 @@ function Interface:updateAllNodes()
 end
 
 function Interface:updateRuneButtons()
+  for _, button in pairs(self.overlay:all("runeButton")) do
+    button.hidden = true
+  end
+  local player = self.game:currentPlayer()
+  if player then
+    for _, rune in pairs(player.runes) do
+      self.overlay(rune.."button").hidden = false
+    end
+  end
+
   local selectedColor = vec4(1, 1, 1, 1)
   local deselectedColor = vec4(0.5, 0.5, 0.5, 1)
   for _, sprite in pairs(self.overlay:all("runeButtonSprite")) do
     sprite.color = deselectedColor
   end
-  self.overlay(self.selectedRune..self.selectedSlot).color = selectedColor
 
   for _, sprite in pairs(self.overlay:all("runeBaseSprite")) do
     sprite.source = "images/interface/runebuttonbg.png"
   end
-  self.overlay(self.selectedRune.."baseSprite").source = "images/interface/runebuttonbgselected.png"
+
+  if self.selectedRune then
+    self.overlay(self.selectedRune..self.selectedSlot).color = selectedColor
+    self.overlay(self.selectedRune.."baseSprite").source = "images/interface/runebuttonbgselected.png"
+  end
 end
 
 function Interface:updatePlayerInfo()
   local node = self.overlay("playerInfo")
   node:remove_all()
 
-  local player = self.game:activeEntity()
-  if player and player.eType == "player" then
-    -- log("displaying player: "..table.tostring(player))
+  local player = self.game:currentPlayer()
+  if player then
+    -- log("displaying player: %s", table.tostring(player))
     local spacing = 3
     local nameNode = am.text(player.name, vec4(1), "left", "top")
     node:append(nameNode)
@@ -159,9 +176,10 @@ function Interface:updateHoverlays(tx, ty)
     self.overlay("hoverPosition").position2d = m2scr(tx, ty)
     self.overlay("hoverSprite").hidden = false
 
+    local player = self.game:currentPlayer()
     local spell = self.game:spellAt(tx, ty)
     local previewSpell
-    if not spell or spell:canAddRune(self.selectedSlotName, self.selectedRune) then
+    if player and player.sp > 0 and self.selectedRune and (not spell or spell:canAddRune(self.selectedSlotName, self.selectedRune)) then
       previewSpell = Spell.new(tx, ty)
       previewSpell:addRune(self.selectedSlotName, self.selectedRune)
     else
@@ -237,10 +255,10 @@ function Interface:update()
   if win:key_pressed("space") then
     if win:key_down("lshift") then
       self.game:startNewGame()
-      self:updatePlayerInfo()
+      self:selectRune()
     else
       self.game:endEntityTurn()
-      self:updatePlayerInfo()
+      self:selectRune()
       self.game:save("autosave")
     end
   end
@@ -265,10 +283,11 @@ function Interface:update()
       end
     else
       if win:mouse_pressed("left") then
-        if self.game:canPlaceRune(tx, ty, self.selectedSlotName, self.selectedRune) then
+        local player = self.game:currentPlayer()
+        if player and player.sp > 0 and self.game:canPlaceRune(tx, ty, self.selectedSlotName, self.selectedRune) then
           self.game:placeRune(tx, ty, self.selectedSlotName, self.selectedRune)
-          self:updatePlayerInfo()
-          self:updateHoverlays(tx, ty)
+          player.sp = player.sp - 1
+          self:updateAllNodes()
           self.game:save("autosave")
         end
       elseif win:mouse_pressed("right") then

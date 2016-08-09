@@ -23,7 +23,7 @@ function setupWindow()
   local windowAspect = settings.windowSize[1] / settings.windowSize[2]
 
   win = am.window{
-      title = "Trigrams",
+      title = "Trigram",
       width = settings.windowSize[1] * settings.renderScale,
       height = settings.windowSize[2] * settings.renderScale,
       resizable = false,

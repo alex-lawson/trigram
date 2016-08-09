@@ -19,8 +19,8 @@ end
 
 function Game:startNewGame()
   self:reset()
-  self:addPlayer(3, 3, "player1", "/images/player/player1.png")
-  self:addPlayer(settings.mapSize[1] - 3, settings.mapSize[2] - 3, "player2", "/images/player/player2.png")
+  self:addPlayer(3, 3, "player1", "/images/player/player1.png", {"circle", "cross"})
+  self:addPlayer(settings.mapSize[1] - 3, settings.mapSize[2] - 3, "player2", "/images/player/player2.png", {"circle", "chaos"})
   self:endGameTurn()
 end
 
@@ -78,7 +78,7 @@ function Game:cycleTile(tx, ty, indexAdjust)
   end
 end
 
-function Game:addPlayer(tx, ty, playerName, playerTex)
+function Game:addPlayer(tx, ty, playerName, playerTex, playerRunes)
   local eId = self:nextEntityId()
   local newPlayer = {
     eType = "player",
@@ -94,10 +94,18 @@ function Game:addPlayer(tx, ty, playerName, playerTex)
     mpMax = 3,
     sp = 2,
     spMax = 2,
-    range = 3
+    range = 3,
+    runes = playerRunes
   }
   self.gameState.entities[eId] = newPlayer
   self:updateNode()
+end
+
+function Game:currentPlayer()
+  local ae = self:activeEntity()
+  if ae and ae.eType == "player" then
+    return ae
+  end
 end
 
 function Game:activeEntity()
@@ -215,6 +223,7 @@ function Game:endEntityTurn()
     local ender = self:entity(self.gameState.initiative[1])
     if ender.eType == "player" then
       ender.mp = ender.mpMax
+      ender.sp = ender.spMax
     end
     -- log("Entity %s ended turn %s", ender.name, self.gameState.turn)
     table.remove(self.gameState.initiative, 1)
